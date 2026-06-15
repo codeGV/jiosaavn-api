@@ -27,6 +27,6 @@ export const Endpoints = {
     id: 'playlist.getDetails',
     link: 'webapi.get'
   },
-  modules: 'content.getBrowseModules',
+  dashboard: 'content.getBrowseModules',
   trending: 'content.getTrending'
 }
