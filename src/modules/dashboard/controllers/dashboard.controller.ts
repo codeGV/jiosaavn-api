@@ -18,8 +18,8 @@ export class DashboardController implements Routes {
         method: 'get',
         path: '/dashboard',
         tags: ['Dashboard'],
-        summary: 'Retrieve an album by ID or link',
-        description: 'Retrieve an album by providing either an ID or a direct link to the album on JioSaavn.',
+        summary: 'Get Dashboard Songs and Albums',
+        description: 'Retrieve the dashboard data including songs and albums.',
         operationId: 'getDashboardByIdOrLink',
         request: {
           query: z.object({
