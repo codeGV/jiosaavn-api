@@ -5,6 +5,7 @@ import {
   SearchController,
   SongController
 } from '#modules/index'
+import process from 'node:process'
 import { PlaylistController } from '#modules/playlists/controllers'
 import { App } from './app'
 
@@ -17,4 +18,7 @@ const app = new App([
   new DashboardController()
 ]).getApp()
 
-export default app
+export default {
+  port: Number(process.env.PORT) || 3002,
+  fetch: app.fetch
+}
