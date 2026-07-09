@@ -11,7 +11,8 @@ export const Endpoints = {
     link: 'webapi.get',
     suggestions: 'webradio.getSong',
     lyrics: 'lyrics.getLyrics',
-    station: 'webradio.createEntityStation'
+    station: 'webradio.createEntityStation',
+    generateAuthToken: 'song.generateAuthToken'
   },
   albums: {
     id: 'content.getAlbumDetails',
@@ -27,6 +28,15 @@ export const Endpoints = {
     id: 'playlist.getDetails',
     link: 'webapi.get'
   },
-  dashboard: 'content.getBrowseModules',
+  podcasts: {
+    show: 'webapi.get',
+    episode: 'webapi.get'
+  },
+  radio: {
+    featuredStations: 'webradio.getFeaturedStations',
+    createFeaturedStation: 'webradio.createFeaturedStation',
+    getSongs: 'webradio.getSong'
+  },
+  dashboard: 'webapi.getLaunchData',
   trending: 'content.getTrending'
 }

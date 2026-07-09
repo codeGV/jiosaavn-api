@@ -7,6 +7,7 @@ interface FetchParams {
   endpoint: EndpointValue
   params: Record<string, string | number>
   context?: ApiContextEnum
+  cookies?: Record<string, string>
 }
 
 interface FetchResponse<T> {
@@ -14,7 +15,7 @@ interface FetchResponse<T> {
   ok: Response['ok']
 }
 
-export const useFetch = async <T>({ endpoint, params, context }: FetchParams): Promise<FetchResponse<T>> => {
+export const useFetch = async <T>({ endpoint, params, context, cookies }: FetchParams): Promise<FetchResponse<T>> => {
   const url = new URL('https://www.jiosaavn.com/api.php')
 
   url.searchParams.append('__call', endpoint.toString())
@@ -27,9 +28,15 @@ export const useFetch = async <T>({ endpoint, params, context }: FetchParams): P
 
   const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)]
 
-  const response = await fetch(url.toString(), {
-    headers: { 'Content-Type': 'application/json', 'User-Agent': randomUserAgent }
-  })
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', 'User-Agent': randomUserAgent }
+
+  if (cookies && Object.keys(cookies).length > 0) {
+    headers.Cookie = Object.entries(cookies)
+      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .join('; ')
+  }
+
+  const response = await fetch(url.toString(), { headers })
 
   const data = await response.json()
 

@@ -1,49 +1,44 @@
 import { createImageLinks } from '#common/helpers'
-import { createAlbumPayload } from '#modules/albums/helpers'
-import { createSongPayload } from '#modules/songs/helpers'
-import type { DashboardAPIResponseModel, DashboardModel } from '#modules/dashboard/models'
+import type { DashboardAPIResponseModel, DashboardModel, LaunchItemAPIResponseModel } from '#modules/dashboard/models'
 import type { z } from 'zod'
 
 export const createDashboardPayload = (
-  modules: z.infer<typeof DashboardAPIResponseModel>
-): z.infer<typeof DashboardModel> => ({
-  albums: modules?.new_albums?.map((album) => createAlbumPayload(album)),
-  playlists: modules?.top_playlists?.map((playlist) => {
-    return {
-      id: playlist?.id,
-      userId: playlist?.more_info?.uid,
-      title: playlist?.title,
-      subtitle: playlist?.subtitle,
-      type: playlist?.type,
-      image: createImageLinks(playlist?.image),
-      url: playlist?.perma_url,
-      songCount: playlist?.more_info?.song_count,
-      firstname: playlist?.more_info?.firstname,
-      followerCount: playlist?.more_info?.follower_count,
-      lastUpdated: playlist?.more_info?.last_updated,
-      explicitContent: playlist?.explicit_content
-    }
-  }),
-  charts: modules?.charts?.map((chart) => {
-    return {
-      id: chart?.id,
-      title: chart?.title,
-      subtitle: chart?.subtitle,
-      type: chart?.type,
-      image: createImageLinks(chart?.image),
-      url: chart?.perma_url,
-      firstname: chart?.more_info?.firstname,
-      explicitContent: chart?.explicit_content,
-      language: chart?.language
-    }
-  }),
-  trending: {
-    // songs: createSongPayload(modules?.new_trending.filter((trending) => trending?.type === 'song') as any)
-    songs: modules?.new_trending
-      .filter((trending) => trending?.type === 'song')
-      .map((song) => createSongPayload(song as any)),
-    albums: modules?.new_trending
-      .filter((trending) => trending?.type === 'album')
-      .map((album) => createAlbumPayload(album as any))
-  }
-})
+  data: z.infer<typeof DashboardAPIResponseModel>
+): z.infer<typeof DashboardModel> => {
+  const orderedModules = Object.entries(data.modules).sort(([, a], [, b]) => a.position - b.position)
+
+  const rails = orderedModules.reduce<z.infer<typeof DashboardModel>['rails']>((acc, [key, meta]) => {
+    const items = (data as Record<string, unknown>)[key]
+    if (!Array.isArray(items)) return acc
+
+    acc.push({
+      id: key,
+      title: meta.title,
+      subtitle: meta.subtitle || '',
+      position: meta.position,
+      items: (items as z.infer<typeof LaunchItemAPIResponseModel>[]).map((item) => ({
+        id: item.id,
+        title: item.title,
+        subtitle: item.subtitle || '',
+        secondarySubtitle: item.secondary_subtitle || null,
+        type: item.type,
+        image: createImageLinks(item.image),
+        url: item.perma_url,
+        count: item.count ?? null,
+        explicitContent: item.explicit_content === '1'
+      }))
+    })
+
+    return acc
+  }, [])
+
+  const weeklyTop = Object.entries(data.global_config?.weekly_top_songs_listid ?? {}).map(([language, entry]) => ({
+    language,
+    listId: entry.listid,
+    title: entry.title || null,
+    image: createImageLinks(entry.image),
+    songCount: entry.count ?? null
+  }))
+
+  return { rails, weeklyTop }
+}

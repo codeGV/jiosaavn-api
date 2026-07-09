@@ -18,8 +18,9 @@ export class DashboardController implements Routes {
         method: 'get',
         path: '/dashboard',
         tags: ['Dashboard'],
-        summary: 'Get Dashboard Songs and Albums',
-        description: 'Retrieve the dashboard data including songs and albums.',
+        summary: 'Get Home Page Rails',
+        description:
+          'Retrieve the home page as an ordered list of rails (trending, charts, new releases, playlists, podcasts, artists, radio, curated promos) plus the current weekly top chart per language, mirroring how the JioSaavn app builds its own home screen.',
         operationId: 'getDashboardByIdOrLink',
         request: {
           query: z.object({

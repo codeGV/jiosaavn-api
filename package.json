@@ -39,12 +39,7 @@
     "deploy": "wrangler deploy",
     "prerelease": "bun run test",
     "release": "bun run changelogen --release --push",
-    "spell-check": "cspell .",
-    "postinstall": "npx simple-git-hooks"
-  },
-  "simple-git-hooks": {
-    "pre-commit": "bun run lint && bun run format",
-    "commit-msg": "bun run commitlint --edit $1"
+    "spell-check": "cspell ."
   },
   "dependencies": {
     "@hono/node-server": "^1.14.0",

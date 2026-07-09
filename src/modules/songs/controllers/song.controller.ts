@@ -86,6 +86,64 @@ export class SongController implements Routes {
     this.controller.openapi(
       createRoute({
         method: 'get',
+        path: '/songs/auth-url',
+        tags: ['Songs'],
+        summary: 'Generate an authenticated streaming URL',
+        description:
+          'Exchange an encrypted media URL (as found on a song or podcast episode download link) for a signed, directly playable streaming URL.',
+        operationId: 'generateSongAuthUrl',
+        request: {
+          query: z.object({
+            url: z.string().openapi({
+              title: 'Encrypted media URL',
+              description: 'The encrypted_media_url of a song or episode',
+              type: 'string',
+              example:
+                'ID2ieOjCrwesDbErZOIw11Wwf+RHa1nbaWV68KA/Hj50kpcCBayTEo42h48Vy5EDyeZ4hSU1PsS8ycJqa8/xSwKCUoZqnL2bbkj1S6kifCg='
+            }),
+            bitrate: z.enum(['12', '48', '96', '128', '160', '320']).optional().openapi({
+              title: 'Bitrate',
+              description: 'Requested audio bitrate',
+              type: 'string',
+              example: '128',
+              default: '128'
+            })
+          })
+        },
+        responses: {
+          200: {
+            description: 'Successful response with a signed streaming URL',
+            content: {
+              'application/json': {
+                schema: z.object({
+                  success: z.boolean().openapi({
+                    description: 'Indicates whether the request was successful',
+                    type: 'boolean',
+                    example: true
+                  }),
+                  data: z.object({
+                    url: z.string().openapi({ description: 'The signed, directly playable streaming URL' })
+                  })
+                })
+              }
+            }
+          },
+          400: { description: 'Bad request when url is missing' },
+          404: { description: 'Unable to generate an auth URL for the given input' }
+        }
+      }),
+      async (ctx) => {
+        const { url, bitrate } = ctx.req.valid('query')
+
+        const authUrl = await this.songService.generateAuthToken({ url, bitrate })
+
+        return ctx.json({ success: true, data: { url: authUrl } })
+      }
+    )
+
+    this.controller.openapi(
+      createRoute({
+        method: 'get',
         path: '/songs/{id}',
         tags: ['Songs'],
         summary: 'Retrieve song by ID',

@@ -2,6 +2,8 @@ import {
   AlbumController,
   ArtistController,
   DashboardController,
+  PodcastController,
+  RadioController,
   SearchController,
   SongController
 } from '#modules/index'
@@ -15,7 +17,9 @@ const app = new App([
   new AlbumController(),
   new ArtistController(),
   new PlaylistController(),
-  new DashboardController()
+  new DashboardController(),
+  new PodcastController(),
+  new RadioController()
 ]).getApp()
 
 export default {

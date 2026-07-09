@@ -1,4 +1,3 @@
-import * as fs from 'node:fs'
 import { Endpoints } from '#common/constants'
 import { useFetch } from '#common/helpers'
 import { createDashboardPayload } from '#modules/dashboard/helpers'
@@ -11,13 +10,18 @@ export class GetDashboardUseCase implements IUseCase<string, z.infer<typeof Dash
   constructor() {}
 
   async execute(language: string) {
+    const languages = language
+      ?.split(',')
+      .map((lang) => lang.trim())
+      .filter(Boolean)
+
     const { data } = await useFetch<z.infer<typeof DashboardAPIResponseModel>>({
       endpoint: Endpoints.dashboard,
-      params: { language }
+      params: {},
+      cookies: languages?.length ? { L: languages.join(','), DL: languages[0] } : undefined
     })
 
     if (!data) throw new HTTPException(404, { message: 'Dashboard not found' })
-    fs.writeFileSync('output.txt', JSON.stringify(data, null, 2))
     return createDashboardPayload(data)
   }
 }

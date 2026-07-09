@@ -1,51 +1,41 @@
 import { Endpoints } from '#common/constants'
-import { ApiContextEnum } from '#common/enums'
 import { useFetch } from '#common/helpers'
 import { createSongPayload } from '#modules/songs/helpers'
-import { CreateSongStationUseCase } from '#modules/songs/use-cases'
 import { HTTPException } from 'hono/http-exception'
 import type { IUseCase } from '#common/types'
 import type { SongAPIResponseModel, SongModel } from '#modules/songs/models'
 import type { z } from 'zod'
 
-export interface GetSongSuggestionsArgs {
-  songId: string
-  limit: number
+export interface GetStationSongsArgs {
+  stationId: string
+  count?: number
+  next?: boolean
 }
 
-export class GetSongSuggestionsUseCase implements IUseCase<GetSongSuggestionsArgs, z.infer<typeof SongModel>[]> {
-  private readonly createSongStation: CreateSongStationUseCase
+export class GetStationSongsUseCase implements IUseCase<GetStationSongsArgs, z.infer<typeof SongModel>[]> {
+  constructor() {}
 
-  constructor() {
-    this.createSongStation = new CreateSongStationUseCase()
-  }
-
-  async execute({ songId, limit }: GetSongSuggestionsArgs) {
-    const stationId = await this.createSongStation.execute(songId)
-
+  async execute({ stationId, count, next }: GetStationSongsArgs) {
     // JioSaavn returns { song, stationid } when k=1, but { "0": { song }, "1": { song }, ..., stationid }
     // for k>1, so both shapes need to be handled at runtime.
     const { data, ok } = await useFetch<Record<string, unknown>>({
-      endpoint: Endpoints.songs.suggestions,
+      endpoint: Endpoints.radio.getSongs,
       params: {
         stationid: stationId,
-        k: limit
-      },
-      context: ApiContextEnum.ANDROID
+        k: count || 20,
+        next: next ? 1 : 0
+      }
     })
 
-    if (!data || !ok) {
-      throw new HTTPException(404, { message: `no suggestions found for the given song` })
-    }
+    if (!data || !ok) throw new HTTPException(404, { message: 'no songs found for the given station' })
 
     if (data.song) return [createSongPayload(data.song as z.infer<typeof SongAPIResponseModel>)]
 
-    const { stationid, ...suggestions } = data
+    const { stationid, ...songs } = data
 
-    return Object.values(suggestions)
+    return Object.values(songs)
       .map((element) => (element as { song?: z.infer<typeof SongAPIResponseModel> } | undefined)?.song)
       .filter((song): song is z.infer<typeof SongAPIResponseModel> => Boolean(song))
       .map(createSongPayload)
-      .slice(0, limit)
   }
 }
