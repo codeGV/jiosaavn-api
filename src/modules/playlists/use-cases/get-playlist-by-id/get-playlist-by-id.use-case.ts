@@ -21,17 +21,14 @@ export class GetPlaylistByIdUseCase implements IUseCase<GetPlaylistByIdArgs, z.i
       params: {
         listid: id,
         n: limit,
-        p: page
+        // JioSaavn's `p` is 1-indexed and treats p=0 the same as p=1, so our
+        // 0-indexed page has to be offset by one to avoid duplicating page 0.
+        p: page + 1
       }
     })
 
     if (!data) throw new HTTPException(404, { message: 'playlist not found' })
 
-    const playlist = createPlaylistPayload(data)
-    return {
-      ...playlist,
-      songCount: playlist?.songs?.length || null,
-      songs: playlist?.songs?.slice(0, limit) || []
-    }
+    return createPlaylistPayload(data)
   }
 }
